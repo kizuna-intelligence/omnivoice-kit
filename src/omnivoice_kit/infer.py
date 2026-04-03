@@ -17,17 +17,23 @@ def load_lora_model(base_model: str, checkpoint_dir: str | Path, device: str | N
     from omnivoice.models.omnivoice import OmniVoice
 
     model = OmniVoice.from_pretrained(base_model, attn_implementation="eager", load_asr=False)
-    lora_config = LoraConfig(
-        r=16,
-        lora_alpha=32,
-        lora_dropout=0.05,
-        bias="none",
-        task_type=TaskType.FEATURE_EXTRACTION,
-        target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
-    )
-    model.llm = get_peft_model(model.llm, lora_config)
     state_dict = load_safetensors(str(Path(checkpoint_dir).resolve() / "model.safetensors"))
-    model.load_state_dict(state_dict, strict=False)
+
+    # Training currently saves full-model checkpoints via accelerate state saving.
+    # Older/alternative flows may save PEFT adapter-style keys. Support both formats.
+    if any("lora_" in key.lower() for key in state_dict):
+        lora_config = LoraConfig(
+            r=16,
+            lora_alpha=32,
+            lora_dropout=0.05,
+            bias="none",
+            task_type=TaskType.FEATURE_EXTRACTION,
+            target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+        )
+        model.llm = get_peft_model(model.llm, lora_config)
+        model.load_state_dict(state_dict, strict=False)
+    else:
+        model.load_state_dict(state_dict, strict=False)
     return model.to(device or ("cuda:0" if torch.cuda.is_available() else "cpu"))
 
 
@@ -73,4 +79,3 @@ def generate_from_jsonl(
     }
     (output_root / "summary.json").write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     return payload
-
