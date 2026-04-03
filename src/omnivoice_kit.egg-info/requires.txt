@@ -1,4 +1,0 @@
-peft>=0.17.0
-safetensors>=0.6.0
-soundfile>=0.13.0
-webdataset>=1.0.2
