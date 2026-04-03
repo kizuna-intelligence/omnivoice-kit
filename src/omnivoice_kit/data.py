@@ -28,6 +28,35 @@ def _maybe_extract_archive(archive_path: Path, output_dir: Path) -> Path:
     return extracted_root
 
 
+def _write_split_jsonl(
+    rows: list[dict],
+    output_root: Path,
+    train_ratio: float,
+    seed: int,
+) -> dict:
+    rng = random.Random(seed)
+    rows = list(rows)
+    rng.shuffle(rows)
+    cutoff = max(1, min(len(rows) - 1, round(len(rows) * train_ratio))) if len(rows) > 1 else len(rows)
+    train_rows = sorted(rows[:cutoff], key=lambda x: x["id"])
+    dev_rows = sorted(rows[cutoff:], key=lambda x: x["id"])
+
+    jsonl_dir = output_root / "jsonl"
+    jsonl_dir.mkdir(parents=True, exist_ok=True)
+    for name, split_rows in (("train", train_rows), ("dev", dev_rows)):
+        with (jsonl_dir / f"{name}.jsonl").open("w", encoding="utf-8") as f:
+            for row in split_rows:
+                f.write(json.dumps(row, ensure_ascii=False) + "\n")
+
+    return {
+        "num_total": len(rows),
+        "num_train": len(train_rows),
+        "num_dev": len(dev_rows),
+        "seed": seed,
+        "train_ratio": train_ratio,
+    }
+
+
 def prepare_ljspeech_jsonl(
     archive: str | Path,
     output_dir: str | Path,
@@ -54,39 +83,58 @@ def prepare_ljspeech_jsonl(
                 }
             )
 
-    grouped: dict[str, list[dict]] = {}
-    for row in rows:
-        prefix = row["id"].split("_", 1)[0]
-        grouped.setdefault(prefix, []).append(row)
-
-    rng = random.Random(seed)
-    train_rows = []
-    dev_rows = []
-    for group_rows in grouped.values():
-        group_rows = list(group_rows)
-        rng.shuffle(group_rows)
-        cutoff = round(len(group_rows) * train_ratio)
-        train_rows.extend(group_rows[:cutoff])
-        dev_rows.extend(group_rows[cutoff:])
-
-    train_rows.sort(key=lambda x: x["id"])
-    dev_rows.sort(key=lambda x: x["id"])
-    jsonl_dir = output_root / "jsonl"
-    jsonl_dir.mkdir(parents=True, exist_ok=True)
-    for name, split_rows in (("train", train_rows), ("dev", dev_rows)):
-        with (jsonl_dir / f"{name}.jsonl").open("w", encoding="utf-8") as f:
-            for row in split_rows:
-                f.write(json.dumps(row, ensure_ascii=False) + "\n")
-
-    summary = {
+    summary = _write_split_jsonl(rows, output_root, train_ratio=train_ratio, seed=seed)
+    summary.update(
+        {
         "archive": str(archive_path),
         "dataset_root": str(dataset_root),
-        "num_total": len(rows),
-        "num_train": len(train_rows),
-        "num_dev": len(dev_rows),
-        "seed": seed,
-        "train_ratio": train_ratio,
-    }
+        }
+    )
+    (output_root / "split_summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+    return summary
+
+
+def prepare_voiceactress100_jsonl(
+    dataset_dir: str | Path,
+    output_dir: str | Path,
+    train_ratio: float = 0.9,
+    seed: int = 42,
+) -> dict:
+    dataset_root = Path(dataset_dir).resolve()
+    output_root = Path(output_dir).resolve()
+    rows = []
+
+    for json_path in sorted(dataset_root.glob("VOICEACTRESS100_*/*.json")):
+        entries = json.loads(json_path.read_text(encoding="utf-8"))
+        if not isinstance(entries, list):
+            continue
+        clip_prefix = json_path.stem
+        for idx, entry in enumerate(entries):
+            flac_path = json_path.with_name(f"{clip_prefix}_{idx}.flac")
+            if not flac_path.exists():
+                continue
+            text = str(entry.get("text", "")).strip()
+            if not text:
+                continue
+            row = {
+                "id": f"{clip_prefix}_{idx}",
+                "text": text,
+                "audio_path": str(flac_path.resolve()),
+                "language_id": str(entry.get("language", "ja")),
+            }
+            if "speaker" in entry:
+                row["speaker"] = entry["speaker"]
+            if "dnsmos" in entry:
+                row["dnsmos"] = entry["dnsmos"]
+            rows.append(row)
+
+    summary = _write_split_jsonl(rows, output_root, train_ratio=train_ratio, seed=seed)
+    summary.update(
+        {
+            "dataset_dir": str(dataset_root),
+            "format": "voiceactress100_processed",
+        }
+    )
     (output_root / "split_summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
     return summary
 
@@ -150,4 +198,3 @@ def tokenize_jsonl_to_manifest(
         "manifest_output": str(manifest_output),
         "total_duration_sec": round(total_duration, 3),
     }
-

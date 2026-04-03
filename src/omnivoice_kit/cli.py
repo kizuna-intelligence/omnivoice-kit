@@ -4,7 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
-from .data import prepare_ljspeech_jsonl, tokenize_jsonl_to_manifest
+from .data import prepare_ljspeech_jsonl, prepare_voiceactress100_jsonl, tokenize_jsonl_to_manifest
 from .infer import generate_from_jsonl, load_lora_model
 from .train import launch_omnivoice_train, write_smoke_text_only_lora_configs, write_text_only_lora_configs
 
@@ -18,6 +18,12 @@ def build_parser() -> argparse.ArgumentParser:
     p_prepare.add_argument("--output-dir", required=True)
     p_prepare.add_argument("--train-ratio", type=float, default=0.9)
     p_prepare.add_argument("--seed", type=int, default=42)
+
+    p_prepare_va = sub.add_parser("prepare-voiceactress-jsonl")
+    p_prepare_va.add_argument("--dataset-dir", required=True)
+    p_prepare_va.add_argument("--output-dir", required=True)
+    p_prepare_va.add_argument("--train-ratio", type=float, default=0.9)
+    p_prepare_va.add_argument("--seed", type=int, default=42)
 
     p_tok = sub.add_parser("tokenize-jsonl")
     p_tok.add_argument("--input-jsonl", required=True)
@@ -35,7 +41,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_launch.add_argument("--train-config", required=True)
     p_launch.add_argument("--data-config", required=True)
     p_launch.add_argument("--output-dir", required=True)
-    p_launch.add_argument("--gpu-ids", default="0")
+    p_launch.add_argument("--gpu-ids", default=None)
     p_launch.add_argument("--num-processes", type=int, default=1)
 
     p_gen = sub.add_parser("generate")
@@ -57,6 +63,8 @@ def main():
 
     if args.command == "prepare-jsonl":
         result = prepare_ljspeech_jsonl(args.archive, args.output_dir, train_ratio=args.train_ratio, seed=args.seed)
+    elif args.command == "prepare-voiceactress-jsonl":
+        result = prepare_voiceactress100_jsonl(args.dataset_dir, args.output_dir, train_ratio=args.train_ratio, seed=args.seed)
     elif args.command == "tokenize-jsonl":
         result = tokenize_jsonl_to_manifest(args.input_jsonl, args.output_dir, tokenizer_path=args.tokenizer_path, device=args.device)
     elif args.command == "write-text-only-configs":

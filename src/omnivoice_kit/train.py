@@ -33,14 +33,12 @@ def launch_omnivoice_train(
     train_config: str | Path,
     data_config: str | Path,
     output_dir: str | Path,
-    gpu_ids: str = "0",
+    gpu_ids: str | None = "0",
     num_processes: int = 1,
 ) -> subprocess.CompletedProcess:
     cmd = [
         "accelerate",
         "launch",
-        "--gpu_ids",
-        gpu_ids,
         "--num_processes",
         str(num_processes),
         "-m",
@@ -52,6 +50,8 @@ def launch_omnivoice_train(
         "--output_dir",
         str(Path(output_dir).resolve()),
     ]
+    if gpu_ids:
+        cmd[2:2] = ["--gpu_ids", gpu_ids]
     return subprocess.run(cmd, check=True)
 
 
