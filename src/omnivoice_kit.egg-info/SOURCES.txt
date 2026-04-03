@@ -1,0 +1,15 @@
+README.md
+pyproject.toml
+src/omnivoice_kit/__init__.py
+src/omnivoice_kit/_bootstrap.py
+src/omnivoice_kit/cli.py
+src/omnivoice_kit/config.py
+src/omnivoice_kit/data.py
+src/omnivoice_kit/infer.py
+src/omnivoice_kit/train.py
+src/omnivoice_kit.egg-info/PKG-INFO
+src/omnivoice_kit.egg-info/SOURCES.txt
+src/omnivoice_kit.egg-info/dependency_links.txt
+src/omnivoice_kit.egg-info/entry_points.txt
+src/omnivoice_kit.egg-info/requires.txt
+src/omnivoice_kit.egg-info/top_level.txt
