@@ -1,26 +1,26 @@
 # omnivoice-kit
 
-OmniVoice のための最小限の学習・推論キットです。
+Minimal training and inference kit for OmniVoice.
 
-- English README: [README_en.md](./README_en.md)
+- 日本語 README: [README.md](./README.md)
 
-このリポジトリでは、扱う対象を次の 3 つに絞っています。
+This repository intentionally focuses on only three tasks:
 
-- LoRA 学習
-- full finetune 学習
-- 学習済み checkpoint / adapter を使った推論
+- LoRA training
+- full finetune training
+- inference with trained checkpoints or adapters
 
-実験用の動画生成や個別検証コードは、このリポジトリには置かない方針です。
+Video generation and one-off experiment scripts are intentionally kept out of this repository.
 
-## 構成
+## Layout
 
 ```text
-third_party/OmniVoice/   上流 OmniVoice
-src/omnivoice_kit/       学習と推論の薄いラッパー
-examples/                最低限の入力例
+third_party/OmniVoice/   upstream OmniVoice
+src/omnivoice_kit/       thin wrappers for training and inference
+examples/                minimal input examples
 ```
 
-## セットアップ
+## Setup
 
 ```bash
 git submodule update --init --recursive
@@ -30,9 +30,9 @@ pip install -e third_party/OmniVoice
 pip install -e .
 ```
 
-## データ準備
+## Data Preparation
 
-LJSpeech 形式アーカイブ:
+LJSpeech-style archive:
 
 ```bash
 omnivoice-kit prepare-jsonl \
@@ -40,7 +40,7 @@ omnivoice-kit prepare-jsonl \
   --output-dir work/dataset
 ```
 
-`VOICEACTRESS100_###/*.flac + JSON` 形式:
+`VOICEACTRESS100_###/*.flac + JSON` format:
 
 ```bash
 omnivoice-kit prepare-voiceactress-jsonl \
@@ -48,7 +48,7 @@ omnivoice-kit prepare-voiceactress-jsonl \
   --output-dir work/tsukuyomi_voiceactress100
 ```
 
-manifest 生成:
+Token manifest generation:
 
 ```bash
 omnivoice-kit tokenize-jsonl \
@@ -60,9 +60,9 @@ omnivoice-kit tokenize-jsonl \
   --output-dir work/tokens/dev
 ```
 
-## LoRA 学習
+## LoRA Training
 
-設定ファイル生成:
+Generate config files:
 
 ```bash
 omnivoice-kit write-lora-configs \
@@ -71,7 +71,7 @@ omnivoice-kit write-lora-configs \
   --output-dir configs/lora
 ```
 
-学習:
+Run training:
 
 ```bash
 CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 \
@@ -82,9 +82,9 @@ omnivoice-kit launch-train \
   --num-processes 1
 ```
 
-## Full Finetune 学習
+## Full Finetune Training
 
-設定ファイル生成:
+Generate config files:
 
 ```bash
 omnivoice-kit write-full-finetune-configs \
@@ -93,7 +93,7 @@ omnivoice-kit write-full-finetune-configs \
   --output-dir configs/full_finetune
 ```
 
-学習:
+Run training:
 
 ```bash
 CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 \
@@ -104,9 +104,9 @@ omnivoice-kit launch-train \
   --num-processes 1
 ```
 
-## 推論
+## Inference
 
-LoRA adapter でも full checkpoint でも、同じ `generate` で読めます。
+The same `generate` command can load either a LoRA adapter or a full checkpoint.
 
 ```bash
 omnivoice-kit generate \
@@ -118,26 +118,26 @@ omnivoice-kit generate \
   --num-step 16
 ```
 
-## つくよみちゃん TTS のおすすめ
+## Current Recommendation For Tsukuyomichan TTS
 
-現時点での最推奨は、`full_ft_lr2e5_resume500_bt256ga4` のフルファインチューニング設定です。
+The current top recommendation is the full finetune setting `full_ft_lr2e5_resume500_bt256ga4`.
 
-理由:
+Why:
 
-- 話者類似度の数値が最も高い
-- 実際に聞いた印象でも、LoRA より声質の寄りが強い
-- `checkpoint-500 + num_step=16` が基準条件として最も安定していた
+- it achieved the highest speaker-similarity score
+- it sounded closer to the target speaker than the LoRA variants
+- `checkpoint-500 + num_step=16` was the most stable baseline condition
 
-判断:
+Current judgment:
 
-- 最推奨: `full_ft_lr2e5_resume500_bt256ga4`
-- 比較用: `top128_attnmlp32_resume900`
-- 非推奨: `top128_attnmlp12`
+- recommended: `full_ft_lr2e5_resume500_bt256ga4`
+- comparison only: `top128_attnmlp32_resume900`
+- not recommended: `top128_attnmlp12`
 
-LoRA は現時点では比較用です。`r=32` は声質寄りですが最終推奨ではなく、`r=12` も表現寄り比較として残しているだけで、推奨設定にはしません。
+At the current stage, LoRA variants are retained only for comparison.
 
-## 補足
+## Notes
 
-- 物理 GPU を固定したい場合は `CUDA_VISIBLE_DEVICES` を使ってください
-- `omnivoice-kit` は OpenVoice を必須依存にはしていません
-- 上流 OmniVoice 本体は `third_party/OmniVoice` に置いています
+- Use `CUDA_VISIBLE_DEVICES` if you want to pin a physical GPU
+- `omnivoice-kit` does not require OpenVoice as a runtime dependency
+- The upstream OmniVoice source is vendored as a submodule under `third_party/OmniVoice`
