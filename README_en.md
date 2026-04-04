@@ -10,8 +10,6 @@ This repository intentionally focuses on only three tasks:
 - full finetune training
 - inference with trained checkpoints or adapters
 
-Video generation and one-off experiment scripts are intentionally kept out of this repository.
-
 ## Layout
 
 ```text
