@@ -151,10 +151,15 @@ At the current stage, LoRA variants are retained only for comparison.
 
 ## Credit
 
-If you publish Tsukuyomichan-based trained models or demos, include a visible corpus credit.
+If you publish or distribute a Tsukuyomichan-like trained model, demo, or app, check the applicable attribution and usage conditions for your release context.
 
 Short credit example:
 
 ```text
 This project uses the Tsukuyomichan Corpus (CV: Rei Yumesaki).
 ```
+
+For training:
+
+- if you train on the Tsukuyomichan Corpus itself, verify the corpus-side terms separately
+- do not treat runtime attribution and corpus-training permission as the same question
