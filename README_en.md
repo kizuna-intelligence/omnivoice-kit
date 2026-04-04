@@ -10,6 +10,32 @@ This repository intentionally focuses on only three tasks:
 - full finetune training
 - inference with trained checkpoints or adapters
 
+## Start Here
+
+There are two common entry points for first-time users.
+
+1. You already have a trained checkpoint or adapter and only want to synthesize audio.  
+   Go straight to [Inference](#inference).
+2. You want to train a model on your own corpus.  
+   Follow [Data Preparation](#data-preparation) and then either [LoRA Training](#lora-training) or [Full Finetune Training](#full-finetune-training).
+
+## Which Training Mode To Use
+
+- `LoRA`  
+  Useful when you want a lighter comparison baseline.
+- `full finetune`  
+  Recommended when your main goal is to lock onto a target character voice.
+
+## What Is Different From Vanilla OmniVoice Training
+
+This repository is aimed at `character-specialized TTS`, not just generic voice cloning.
+
+The practical difference is:
+
+- training is designed to work from a corpus without requiring `ref_audio` at training time
+- the goal is to make the model sound like the target character even in `no-ref` inference
+- in other words, the focus is `specializing the model toward one character`, not only copying a reference clip at runtime
+
 ## Layout
 
 ```text
@@ -133,6 +159,34 @@ Current judgment:
 - not recommended: `top128_attnmlp12`
 
 At the current stage, LoRA variants are retained only for comparison.
+
+## Hardware Guidance
+
+The current recommended full-finetune setup was validated on a single GPU.
+
+- recommended full-finetune preset  
+  `full_ft_lr2e5_resume500_bt256ga4`
+- mixed precision  
+  `bf16`
+- verified GPU  
+  `RTX 5060 Ti 16GB`
+- also verified on  
+  `RTX 3090 24GB`
+
+Practical guidance:
+
+- `16GB VRAM` is a realistic minimum for the recommended full-finetune run on one GPU
+- `24GB VRAM` gives you noticeably more headroom for checkpointing and parallel work
+- `12GB VRAM` or below will likely be tight for this full-finetune setting
+
+Inference is much lighter than training.
+
+- recommended inference baseline  
+  `num_step=16`
+- verified  
+  runs fine on `16GB VRAM`
+- if you want slightly more expressive decoding  
+  try `num_step=24`
 
 ## Notes
 
