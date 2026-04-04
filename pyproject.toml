@@ -8,6 +8,7 @@ version = "0.1.0"
 description = "Thin training and inference kit around OmniVoice"
 readme = "README.md"
 requires-python = ">=3.10"
+license = "Apache-2.0"
 dependencies = [
   "peft>=0.17.0",
   "safetensors>=0.6.0",
@@ -23,4 +24,3 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
-

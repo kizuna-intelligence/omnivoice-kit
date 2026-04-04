@@ -141,3 +141,20 @@ LoRA は現時点では比較用です。`r=32` は声質寄りですが最終�
 - 物理 GPU を固定したい場合は `CUDA_VISIBLE_DEVICES` を使ってください
 - `omnivoice-kit` は OpenVoice を必須依存にはしていません
 - 上流 OmniVoice 本体は `third_party/OmniVoice` に置いています
+
+## ライセンス
+
+`omnivoice-kit` は、同梱している OmniVoice と同じく `Apache-2.0` として扱います。
+
+- [LICENSE](./LICENSE)
+- 上流 OmniVoice: [third_party/OmniVoice/LICENSE](./third_party/OmniVoice/LICENSE)
+
+## クレジット
+
+つくよみちゃん系の学習済みモデルやデモを公開する場合は、つくよみちゃんコーパスのクレジットを明記してください。
+
+短い表記例:
+
+```text
+音声合成には「つくよみちゃんコーパス（CV: 夢前黎）」を使用しています。
+```

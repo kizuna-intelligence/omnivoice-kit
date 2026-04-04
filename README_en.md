@@ -141,3 +141,20 @@ At the current stage, LoRA variants are retained only for comparison.
 - Use `CUDA_VISIBLE_DEVICES` if you want to pin a physical GPU
 - `omnivoice-kit` does not require OpenVoice as a runtime dependency
 - The upstream OmniVoice source is vendored as a submodule under `third_party/OmniVoice`
+
+## License
+
+`omnivoice-kit` uses the same license as the bundled OmniVoice source: `Apache-2.0`.
+
+- [LICENSE](./LICENSE)
+- upstream OmniVoice: [third_party/OmniVoice/LICENSE](./third_party/OmniVoice/LICENSE)
+
+## Credit
+
+If you publish Tsukuyomichan-based trained models or demos, include a visible corpus credit.
+
+Short credit example:
+
+```text
+This project uses the Tsukuyomichan Corpus (CV: Rei Yumesaki).
+```
