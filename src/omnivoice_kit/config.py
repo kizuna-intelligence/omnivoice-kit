@@ -34,9 +34,9 @@ class BaseTrainingPreset:
     mixed_precision: str = "bf16"
     allow_tf32: bool = True
     logging_steps: int = 10
-    eval_steps: int = 50
-    save_steps: int = 50
-    keep_last_n_checkpoints: int = -1
+    eval_steps: int = 100
+    save_steps: int = 250
+    keep_last_n_checkpoints: int = 2
 
     def to_dict(self) -> dict:
         return asdict(self)
