@@ -4,7 +4,7 @@ from dataclasses import asdict, dataclass, field
 
 
 @dataclass
-class TextOnlyLoraPreset:
+class BaseTrainingPreset:
     llm_name_or_path: str = "Qwen/Qwen3-0.6B"
     audio_vocab_size: int = 1025
     audio_mask_id: int = 1024
@@ -19,10 +19,10 @@ class TextOnlyLoraPreset:
     only_instruct_ratio: float = 0.0
     resume_from_checkpoint: str | None = None
     init_from_checkpoint: str | None = "k2-fsa/OmniVoice"
-    learning_rate: float = 1e-4
-    weight_decay: float = 0.01
+    learning_rate: float = 2e-5
+    weight_decay: float = 0.0
     max_grad_norm: float = 1.0
-    steps: int = 200
+    steps: int = 300
     seed: int = 42
     lr_scheduler_type: str = "cosine"
     warmup_type: str = "ratio"
@@ -41,3 +41,20 @@ class TextOnlyLoraPreset:
     def to_dict(self) -> dict:
         return asdict(self)
 
+
+@dataclass
+class LoraTrainingPreset(BaseTrainingPreset):
+    use_lora: bool = True
+    lora_r: int = 8
+    lora_alpha: int = 16
+    lora_dropout: float = 0.05
+    lora_target_modules: list[str] = field(default_factory=lambda: ["q_proj", "k_proj", "v_proj", "o_proj"])
+
+
+@dataclass
+class FullFinetunePreset(BaseTrainingPreset):
+    use_lora: bool = False
+
+
+# Backward-compatible alias.
+TextOnlyLoraPreset = LoraTrainingPreset

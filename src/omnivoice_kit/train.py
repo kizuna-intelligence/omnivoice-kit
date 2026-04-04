@@ -4,21 +4,22 @@ import json
 import subprocess
 from pathlib import Path
 
-from .config import TextOnlyLoraPreset
+from .config import FullFinetunePreset, LoraTrainingPreset
 
 
-def write_text_only_lora_configs(
+def _write_training_files(
     train_manifest: str | Path,
     dev_manifest: str | Path,
     output_dir: str | Path,
-    preset: TextOnlyLoraPreset | None = None,
+    train_config_name: str,
+    data_config_name: str,
+    preset,
 ) -> dict:
     output_root = Path(output_dir).resolve()
     output_root.mkdir(parents=True, exist_ok=True)
-    preset = preset or TextOnlyLoraPreset()
 
-    train_cfg = output_root / "train_config_text_only_lora.json"
-    data_cfg = output_root / "data_config_text_only_lora.json"
+    train_cfg = output_root / train_config_name
+    data_cfg = output_root / data_config_name
 
     train_cfg.write_text(json.dumps(preset.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8")
     data_payload = {
@@ -27,6 +28,38 @@ def write_text_only_lora_configs(
     }
     data_cfg.write_text(json.dumps(data_payload, ensure_ascii=False, indent=2), encoding="utf-8")
     return {"train_config": str(train_cfg), "data_config": str(data_cfg)}
+
+
+def write_lora_configs(
+    train_manifest: str | Path,
+    dev_manifest: str | Path,
+    output_dir: str | Path,
+    preset: LoraTrainingPreset | None = None,
+) -> dict:
+    return _write_training_files(
+        train_manifest=train_manifest,
+        dev_manifest=dev_manifest,
+        output_dir=output_dir,
+        train_config_name="train_config_lora.json",
+        data_config_name="data_config_lora.json",
+        preset=preset or LoraTrainingPreset(),
+    )
+
+
+def write_full_finetune_configs(
+    train_manifest: str | Path,
+    dev_manifest: str | Path,
+    output_dir: str | Path,
+    preset: FullFinetunePreset | None = None,
+) -> dict:
+    return _write_training_files(
+        train_manifest=train_manifest,
+        dev_manifest=dev_manifest,
+        output_dir=output_dir,
+        train_config_name="train_config_full_finetune.json",
+        data_config_name="data_config_full_finetune.json",
+        preset=preset or FullFinetunePreset(),
+    )
 
 
 def launch_omnivoice_train(
@@ -53,13 +86,3 @@ def launch_omnivoice_train(
     if gpu_ids:
         cmd[2:2] = ["--gpu_ids", gpu_ids]
     return subprocess.run(cmd, check=True)
-
-
-def write_smoke_text_only_lora_configs(
-    train_manifest: str | Path,
-    dev_manifest: str | Path,
-    output_dir: str | Path,
-    steps: int = 1,
-) -> dict:
-    preset = TextOnlyLoraPreset(steps=steps, eval_steps=steps, save_steps=steps, logging_steps=1)
-    return write_text_only_lora_configs(train_manifest, dev_manifest, output_dir, preset=preset)

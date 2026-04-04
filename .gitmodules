@@ -1,3 +1,3 @@
 [submodule "third_party/OmniVoice"]
 	path = third_party/OmniVoice
-	url = https://github.com/k2-fsa/OmniVoice.git
+	url = https://github.com/kizuna-intelligence/OmniVoice.git

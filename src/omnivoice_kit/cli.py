@@ -5,8 +5,8 @@ import json
 from pathlib import Path
 
 from .data import prepare_ljspeech_jsonl, prepare_voiceactress100_jsonl, tokenize_jsonl_to_manifest
-from .infer import generate_from_jsonl, load_lora_model
-from .train import launch_omnivoice_train, write_smoke_text_only_lora_configs, write_text_only_lora_configs
+from .infer import generate_from_jsonl, load_model
+from .train import launch_omnivoice_train, write_full_finetune_configs, write_lora_configs
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -31,11 +31,15 @@ def build_parser() -> argparse.ArgumentParser:
     p_tok.add_argument("--tokenizer-path", default="eustlb/higgs-audio-v2-tokenizer")
     p_tok.add_argument("--device", default=None)
 
-    p_cfg = sub.add_parser("write-text-only-configs")
-    p_cfg.add_argument("--train-manifest", required=True)
-    p_cfg.add_argument("--dev-manifest", required=True)
-    p_cfg.add_argument("--output-dir", required=True)
-    p_cfg.add_argument("--steps", type=int, default=None)
+    p_cfg_lora = sub.add_parser("write-lora-configs")
+    p_cfg_lora.add_argument("--train-manifest", required=True)
+    p_cfg_lora.add_argument("--dev-manifest", required=True)
+    p_cfg_lora.add_argument("--output-dir", required=True)
+
+    p_cfg_ft = sub.add_parser("write-full-finetune-configs")
+    p_cfg_ft.add_argument("--train-manifest", required=True)
+    p_cfg_ft.add_argument("--dev-manifest", required=True)
+    p_cfg_ft.add_argument("--output-dir", required=True)
 
     p_launch = sub.add_parser("launch-train")
     p_launch.add_argument("--train-config", required=True)
@@ -67,11 +71,10 @@ def main():
         result = prepare_voiceactress100_jsonl(args.dataset_dir, args.output_dir, train_ratio=args.train_ratio, seed=args.seed)
     elif args.command == "tokenize-jsonl":
         result = tokenize_jsonl_to_manifest(args.input_jsonl, args.output_dir, tokenizer_path=args.tokenizer_path, device=args.device)
-    elif args.command == "write-text-only-configs":
-        if args.steps is None:
-            result = write_text_only_lora_configs(args.train_manifest, args.dev_manifest, args.output_dir)
-        else:
-            result = write_smoke_text_only_lora_configs(args.train_manifest, args.dev_manifest, args.output_dir, steps=args.steps)
+    elif args.command == "write-lora-configs":
+        result = write_lora_configs(args.train_manifest, args.dev_manifest, args.output_dir)
+    elif args.command == "write-full-finetune-configs":
+        result = write_full_finetune_configs(args.train_manifest, args.dev_manifest, args.output_dir)
     elif args.command == "launch-train":
         completed = launch_omnivoice_train(
             train_config=args.train_config,
@@ -82,7 +85,7 @@ def main():
         )
         result = {"returncode": completed.returncode, "output_dir": str(Path(args.output_dir).resolve())}
     elif args.command == "generate":
-        model = load_lora_model(args.base_model, args.checkpoint_dir)
+        model = load_model(args.base_model, args.checkpoint_dir)
         result = generate_from_jsonl(
             model=model,
             input_jsonl=args.input_jsonl,
