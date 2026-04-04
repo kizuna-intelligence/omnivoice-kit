@@ -201,17 +201,38 @@ Inference is much lighter than training.
 - [LICENSE](./LICENSE)
 - upstream OmniVoice: [third_party/OmniVoice/LICENSE](./third_party/OmniVoice/LICENSE)
 
-## Credit
+## Credit and Usage Conditions
 
-If you publish or distribute a Tsukuyomichan-like trained model, demo, or app, check the applicable attribution and usage conditions for your release context.
+### Tsukuyomichan Corpus Attribution
 
-Short credit example:
+The Tsukuyomichan model included in this toolkit was trained using voice data freely released by the free-use character "Tsukuyomichan" (© Rei Yumesaki).
+
+When publishing a Tsukuyomichan-like model, demo, or application, include the following credit in full. Please include the URL.
+
+```text
+This software uses voice data freely released by the free-use character "Tsukuyomichan" (© Rei Yumesaki).
+
+■ Tsukuyomichan Corpus (CV: Rei Yumesaki)
+https://tyc.rei-yumesaki.net/material/corpus/
+```
+
+Short credit example for end users:
 
 ```text
 This project uses the Tsukuyomichan Corpus (CV: Rei Yumesaki).
 ```
 
-For training:
+### Restrictions on Output Audio
 
-- if you train on the Tsukuyomichan Corpus itself, verify the corpus-side terms separately
-- do not treat runtime attribution and corpus-training permission as the same question
+Audio generated from the Tsukuyomichan model must not be used for the following purposes:
+
+- Criticizing or attacking individuals. (The definition of "criticism or attack" follows the [Tsukuyomichan Character License](https://tyc.rei-yumesaki.net/about/terms/#condition3).)
+- Advocating for or against specific political positions, religions, or ideologies.
+- Publishing explicit or offensive content without appropriate age-gating.
+- Distributing or publishing in a form that permits secondary use (use as raw material) by others.
+
+※ Distribution or sale as finished creative works is permitted.
+
+### Modification and Redistribution
+
+If you use the Tsukuyomichan model itself as a base (including modification, fine-tuning, merging with other models, or redistribution), the portions derived from the Tsukuyomichan Corpus must be handled in accordance with the [Tsukuyomichan Corpus Terms of Use](https://tyc.rei-yumesaki.net/material/corpus/). This requirement is copyleft and carries over to all derivative works and redistributed data.
