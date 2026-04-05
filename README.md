@@ -12,6 +12,8 @@ OmniVoice を使って特定キャラクターの音声合成モデルを学習�
 | あみたろ ITA（通常） | あみたろの声素材工房 | [kizuna-intelligence/amitaro-ita-omnivoice-full-finetune](https://huggingface.co/kizuna-intelligence/amitaro-ita-omnivoice-full-finetune) |
 | サヨ子 | Fusic（81 歳女性） | [kizuna-intelligence/sayoko-omnivoice-full-finetune](https://huggingface.co/kizuna-intelligence/sayoko-omnivoice-full-finetune) |
 
+> **注意：** つくよみちゃん以外の音声モデルを利用する場合は、各モデルページに記載の利用規約を必ず参照してください。
+
 できることは 3 つです。
 
 1. 学習済みモデルで音声を合成する（推論）

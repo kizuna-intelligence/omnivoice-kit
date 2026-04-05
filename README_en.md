@@ -12,6 +12,8 @@ Pre-trained models:
 | Amitaro ITA (normal) | Amitaro Voice Material Studio | [kizuna-intelligence/amitaro-ita-omnivoice-full-finetune](https://huggingface.co/kizuna-intelligence/amitaro-ita-omnivoice-full-finetune) |
 | Sayoko | Fusic (81-year-old female) | [kizuna-intelligence/sayoko-omnivoice-full-finetune](https://huggingface.co/kizuna-intelligence/sayoko-omnivoice-full-finetune) |
 
+> **Note:** For models other than Tsukuyomichan, please refer to the terms of use listed on each model's page before use.
+
 This kit supports three things:
 
 1. Synthesize audio with a pre-trained model (inference)
