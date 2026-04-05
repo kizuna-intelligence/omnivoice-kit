@@ -12,6 +12,8 @@ Pre-trained models:
 | Amitaro ITA (normal) | Amitaro Voice Material Studio | [kizuna-intelligence/amitaro-ita-omnivoice-full-finetune](https://huggingface.co/kizuna-intelligence/amitaro-ita-omnivoice-full-finetune) |
 | Sayoko | Fusic (81-year-old female) | [kizuna-intelligence/sayoko-omnivoice-full-finetune](https://huggingface.co/kizuna-intelligence/sayoko-omnivoice-full-finetune) |
 
+> **Note:** Before using any voice model, please refer to the terms of use listed on each model's page.
+
 This kit supports three things:
 
 1. Synthesize audio with a pre-trained model (inference)
@@ -135,6 +137,34 @@ omnivoice-kit generate \
 ```
 
 `--strip-audio-encoder` removes the audio encoder modules (~715 MB) that are unused during no-ref inference. This saves significant VRAM.
+
+### Amitaro ITA model
+
+```bash
+CUDA_VISIBLE_DEVICES=0 \
+omnivoice-kit generate \
+  --base-model kizuna-intelligence/amitaro-ita-omnivoice-full-finetune \
+  --input-jsonl examples/japanese_prompts.jsonl \
+  --output-dir artifacts/generate_amitaro \
+  --language ja \
+  --num-step 20
+```
+
+**Terms of use (required reading):** [https://amitaro.net/voice/ita/](https://amitaro.net/voice/ita/)
+
+### Sayoko model
+
+```bash
+CUDA_VISIBLE_DEVICES=0 \
+omnivoice-kit generate \
+  --base-model kizuna-intelligence/sayoko-omnivoice-full-finetune \
+  --input-jsonl examples/japanese_prompts.jsonl \
+  --output-dir artifacts/generate_sayoko \
+  --language ja \
+  --num-step 20
+```
+
+**License:** CC BY 4.0 (see [model page](https://huggingface.co/kizuna-intelligence/sayoko-omnivoice-full-finetune))
 
 ### Input File Format
 
