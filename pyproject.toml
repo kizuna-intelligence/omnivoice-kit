@@ -16,6 +16,16 @@ dependencies = [
   "webdataset>=1.0.2",
 ]
 
+[project.optional-dependencies]
+# FP16 inference: no extra deps — base install is sufficient
+
+# Load GPTQ-compressed models for low-VRAM inference (Python >= 3.12 required)
+gptq = ["onecomp>=1.0.0"]
+
+# Compress a model with OneCompression AutoBit to create GPTQ checkpoints
+# (Python >= 3.12 required; includes gptq loading capability)
+compress = ["onecomp>=1.0.0"]
+
 [project.scripts]
 omnivoice-kit = "omnivoice_kit.cli:main"
 
