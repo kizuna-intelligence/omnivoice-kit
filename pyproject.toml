@@ -17,7 +17,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Low-VRAM LM compression (requires Python >= 3.12)
+# FP16 inference: no extra deps — base install is sufficient
+
+# Load GPTQ-compressed models for low-VRAM inference (Python >= 3.12 required)
+gptq = ["onecomp>=1.0.0"]
+
+# Compress a model with OneCompression AutoBit to create GPTQ checkpoints
+# (Python >= 3.12 required; includes gptq loading capability)
 compress = ["onecomp>=1.0.0"]
 
 [project.scripts]

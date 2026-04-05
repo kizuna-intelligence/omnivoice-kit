@@ -42,11 +42,13 @@ pip install -e third_party/OmniVoice
 pip install -e .
 ```
 
-圧縮版（GPTQ 8-bit）を使う場合は Python 3.12 が必要です：
+用途に応じて追加インストール：
 
-```bash
-pip install -e ".[compress]"
-```
+| 用途 | コマンド | Python |
+|---|---|---|
+| FP16 推論のみ | `pip install -e .` | 3.10+ |
+| GPTQ 圧縮モデルで推論 | `pip install -e ".[gptq]"` | **3.12 必須** |
+| モデルを自分で圧縮（compress-lm） | `pip install -e ".[compress]"` | **3.12 必須** |
 
 ---
 

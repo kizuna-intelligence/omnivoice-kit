@@ -42,11 +42,13 @@ pip install -e third_party/OmniVoice
 pip install -e .
 ```
 
-For the compressed (GPTQ 8-bit) variant, Python 3.12 is required:
+Install extras based on your use case:
 
-```bash
-pip install -e ".[compress]"
-```
+| Use case | Command | Python |
+|---|---|---|
+| FP16 inference only | `pip install -e .` | 3.10+ |
+| GPTQ compressed model inference | `pip install -e ".[gptq]"` | **3.12 required** |
+| Compress a model yourself (compress-lm) | `pip install -e ".[compress]"` | **3.12 required** |
 
 ---
 
