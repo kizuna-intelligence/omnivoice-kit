@@ -1,9 +1,9 @@
 # omnivoice-kit
 
-Minimal training and inference kit for OmniVoice — optimized for character-specialized Japanese TTS.
+General-purpose training and inference kit for OmniVoice. Train on any corpus and build a TTS specialized for your target speaker or character.
 
 - 日本語 README: [README.md](./README.md)
-- Model release: [kizuna-intelligence/tsukuyomichan-omnivoice-compressed](https://huggingface.co/kizuna-intelligence/tsukuyomichan-omnivoice-compressed)
+- Example model (Tsukuyomichan): [kizuna-intelligence/tsukuyomichan-omnivoice-compressed](https://huggingface.co/kizuna-intelligence/tsukuyomichan-omnivoice-compressed)
 
 This kit supports three things:
 
@@ -13,9 +13,9 @@ This kit supports three things:
 
 ---
 
-## Just Want to Hear the Voice?
+## Just Want to Hear the Voice? (Tsukuyomichan Example Model)
 
-Two model variants are available on HuggingFace.
+A pre-trained Tsukuyomichan model is available on HuggingFace in two variants.
 
 | Variant | Folder | VRAM | RTF | Use Case |
 |---|---|---|---|---|

@@ -1,9 +1,9 @@
 # omnivoice-kit
 
-OmniVoice を使ってつくよみちゃん風の日本語 TTS を動かすためのキットです。
+OmniVoice を使って特定キャラクターの音声合成モデルを学習・推論するための汎用キットです。任意のコーパスで学習でき、特定の話者に特化した TTS を構築できます。
 
 - English README: [README_en.md](./README_en.md)
-- モデル配布先: [kizuna-intelligence/tsukuyomichan-omnivoice-compressed](https://huggingface.co/kizuna-intelligence/tsukuyomichan-omnivoice-compressed)
+- サンプルモデル（つくよみちゃん）: [kizuna-intelligence/tsukuyomichan-omnivoice-compressed](https://huggingface.co/kizuna-intelligence/tsukuyomichan-omnivoice-compressed)
 
 できることは 3 つです。
 
@@ -13,9 +13,9 @@ OmniVoice を使ってつくよみちゃん風の日本語 TTS を動かすた�
 
 ---
 
-## まず音を出したい人へ
+## まず音を出したい人へ（つくよみちゃんサンプルモデル）
 
-モデルは HuggingFace に 2 種類用意されています。
+つくよみちゃんの学習済みモデルを公開しています。HuggingFace に 2 種類用意されています。
 
 | バリアント | フォルダ | 必要 VRAM | 速さ (RTF) | 用途 |
 |---|---|---|---|---|
