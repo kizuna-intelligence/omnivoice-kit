@@ -242,7 +242,7 @@ examples/                Sample input files
 
 The Tsukuyomichan model included in this toolkit was trained using voice data freely released by the free-use character "Tsukuyomichan" (© Rei Yumesaki).
 
-When publishing a Tsukuyomichan-based model, demo, or application, include the following credit in full:
+When publishing a Tsukuyomichan-based model, demo, or application, include the following credit in full. Please include the URL.
 
 ```text
 This software uses voice data freely released by the free-use character "Tsukuyomichan" (© Rei Yumesaki).
