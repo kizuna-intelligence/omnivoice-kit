@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 from .data import prepare_ljspeech_jsonl, prepare_voiceactress100_jsonl, tokenize_jsonl_to_manifest
-from .infer import generate_from_jsonl, load_model
+from .infer import generate_from_jsonl, load_model, resolve_checkpoint_dir
 from .optimize import compress_lm, load_compressed_model, is_compressed_llm_dir
 from .train import launch_omnivoice_train, write_full_finetune_configs, write_lora_configs
 
@@ -109,13 +109,14 @@ def main():
         result = {"returncode": completed.returncode, "output_dir": str(Path(args.output_dir).resolve())}
     elif args.command == "generate":
         strip = getattr(args, "strip_audio_encoder", False)
-        if is_compressed_llm_dir(args.checkpoint_dir):
+        checkpoint_dir = resolve_checkpoint_dir(args.checkpoint_dir)
+        if is_compressed_llm_dir(checkpoint_dir):
             model = load_compressed_model(
-                args.base_model, args.checkpoint_dir, strip_encoder=strip,
+                args.base_model, checkpoint_dir, strip_encoder=strip,
             )
         else:
             from .optimize import strip_audio_encoder
-            model = load_model(args.base_model, args.checkpoint_dir)
+            model = load_model(args.base_model, checkpoint_dir)
             if strip:
                 strip_audio_encoder(model)
         result = generate_from_jsonl(

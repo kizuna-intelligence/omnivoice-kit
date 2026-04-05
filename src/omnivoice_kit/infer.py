@@ -31,11 +31,43 @@ def _resolve_full_model_targets(model, requested_targets: list[str]) -> list[str
     return resolved
 
 
+def resolve_checkpoint_dir(checkpoint_dir: str | Path) -> Path:
+    """Resolve checkpoint_dir to a local path, downloading from HuggingFace if needed.
+
+    Accepts:
+    - A local path (absolute or relative)
+    - A HuggingFace repo ID: ``"owner/repo"``
+    - A HuggingFace repo ID with subfolder: ``"owner/repo/subfolder"``
+    """
+    p = Path(str(checkpoint_dir))
+    if p.exists():
+        return p.resolve()
+
+    s = str(checkpoint_dir).replace("\\", "/")
+    parts = s.split("/")
+    if len(parts) >= 2 and not s.startswith("/") and not s.startswith("."):
+        from huggingface_hub import snapshot_download
+        repo_id = parts[0] + "/" + parts[1]
+        subfolder = "/".join(parts[2:]) if len(parts) > 2 else ""
+        print(f"[resolve_checkpoint_dir] Downloading {repo_id} from HuggingFace ...")
+        local_dir = snapshot_download(repo_id)
+        result = Path(local_dir)
+        if subfolder:
+            result = result / subfolder
+        if not result.exists():
+            raise FileNotFoundError(
+                f"Subfolder '{subfolder}' not found in downloaded repo {repo_id} at {result}"
+            )
+        return result
+
+    return p.resolve()
+
+
 def load_model(base_model: str, checkpoint_dir: str | Path, device: str | None = None):
     ensure_omnivoice_on_path()
     from omnivoice.models.omnivoice import OmniVoice
 
-    checkpoint_dir = Path(checkpoint_dir).resolve()
+    checkpoint_dir = resolve_checkpoint_dir(checkpoint_dir)
     model = OmniVoice.from_pretrained(base_model, attn_implementation="eager", load_asr=False)
     train_cfg_path = checkpoint_dir / "train_config.json"
     adapter_cfg_path = checkpoint_dir / "adapter_config.json"
