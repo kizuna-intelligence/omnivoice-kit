@@ -1,52 +1,40 @@
 # omnivoice-kit
 
-Minimal training and inference kit for OmniVoice.
+Minimal training and inference kit for OmniVoice — optimized for character-specialized Japanese TTS.
 
 - 日本語 README: [README.md](./README.md)
+- Model release: [kizuna-intelligence/tsukuyomichan-omnivoice-compressed](https://huggingface.co/kizuna-intelligence/tsukuyomichan-omnivoice-compressed)
 
-This repository intentionally focuses on only three tasks:
+This kit supports three things:
 
-- LoRA training
-- full finetune training
-- inference with trained checkpoints or adapters
+1. Synthesize audio with a pre-trained model (inference)
+2. LoRA fine-tuning on your own corpus
+3. Full fine-tuning on your own corpus
 
-## Start Here
+---
 
-There are two common entry points for first-time users.
+## Just Want to Hear the Voice?
 
-1. You already have a trained checkpoint or adapter and only want to synthesize audio.  
-   Go straight to [Inference](#inference).
-2. You want to train a model on your own corpus.  
-   Follow [Data Preparation](#data-preparation) and then either [LoRA Training](#lora-training) or [Full Finetune Training](#full-finetune-training).
+Two model variants are available on HuggingFace.
 
-## Which Training Mode To Use
+| Variant | Folder | VRAM | RTF | Use Case |
+|---|---|---|---|---|
+| **FP16 (standard)** | `…/fp16` | ~3.3 GB | 0.11 | Normal inference · high quality |
+| **GPTQ 8-bit (compressed)** | `…/gptq8` | ~1.35 GB | 0.34 | Low-VRAM devices (4 GB GPU) |
 
-- `LoRA`  
-  Useful when you want a lighter comparison baseline.
-- `full finetune`  
-  Recommended when your main goal is to lock onto a target character voice.
+> **What is RTF?** Real-Time Factor — how many seconds it takes to generate 1 second of audio. Both variants are far below 0.5, meaning audio is generated several times faster than real-time.
 
-## What Is Different From Vanilla OmniVoice Training
+Which one to use:
+- **8 GB or more VRAM** → Use FP16 (standard)
+- **4 – 6 GB VRAM** → Use GPTQ 8-bit (compressed)
 
-This repository is aimed at `character-specialized TTS`, not just generic voice cloning.
-
-The practical difference is:
-
-- training is designed to work from a corpus without requiring `ref_audio` at training time
-- the goal is to make the model sound like the target character even in `no-ref` inference
-- in other words, the focus is `specializing the model toward one character`, not only copying a reference clip at runtime
-
-## Layout
-
-```text
-third_party/OmniVoice/   upstream OmniVoice
-src/omnivoice_kit/       thin wrappers for training and inference
-examples/                minimal input examples
-```
+---
 
 ## Setup
 
 ```bash
+git clone https://github.com/kizuna-intelligence/omnivoice-kit
+cd omnivoice-kit
 git submodule update --init --recursive
 python -m venv .venv
 source .venv/bin/activate
@@ -54,159 +42,61 @@ pip install -e third_party/OmniVoice
 pip install -e .
 ```
 
-## Data Preparation
-
-LJSpeech-style archive:
+For the compressed (GPTQ 8-bit) variant, Python 3.12 is required:
 
 ```bash
-omnivoice-kit prepare-jsonl \
-  --archive /path/to/dataset.tar.zst \
-  --output-dir work/dataset
+pip install -e ".[compress]"
 ```
 
-`VOICEACTRESS100_###/*.flac + JSON` format:
-
-```bash
-omnivoice-kit prepare-voiceactress-jsonl \
-  --dataset-dir /path/to/tsukuyomichan_processed \
-  --output-dir work/tsukuyomi_voiceactress100
-```
-
-Token manifest generation:
-
-```bash
-omnivoice-kit tokenize-jsonl \
-  --input-jsonl work/tsukuyomi_voiceactress100/jsonl/train.jsonl \
-  --output-dir work/tokens/train
-
-omnivoice-kit tokenize-jsonl \
-  --input-jsonl work/tsukuyomi_voiceactress100/jsonl/dev.jsonl \
-  --output-dir work/tokens/dev
-```
-
-## LoRA Training
-
-Generate config files:
-
-```bash
-omnivoice-kit write-lora-configs \
-  --train-manifest work/tokens/train/data.lst \
-  --dev-manifest work/tokens/dev/data.lst \
-  --output-dir configs/lora
-```
-
-Run training:
-
-```bash
-CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 \
-omnivoice-kit launch-train \
-  --train-config configs/lora/train_config_lora.json \
-  --data-config configs/lora/data_config_lora.json \
-  --output-dir artifacts/train_lora \
-  --num-processes 1
-```
-
-## Full Finetune Training
-
-Generate config files:
-
-```bash
-omnivoice-kit write-full-finetune-configs \
-  --train-manifest work/tokens/train/data.lst \
-  --dev-manifest work/tokens/dev/data.lst \
-  --output-dir configs/full_finetune
-```
-
-Run training:
-
-```bash
-CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 \
-omnivoice-kit launch-train \
-  --train-config configs/full_finetune/train_config_full_finetune.json \
-  --data-config configs/full_finetune/data_config_full_finetune.json \
-  --output-dir artifacts/train_full_finetune \
-  --num-processes 1
-```
+---
 
 ## Inference
 
-The same `generate` command can load either a LoRA adapter or a full checkpoint.
+### FP16 (standard)
 
 ```bash
+CUDA_VISIBLE_DEVICES=0 \
 omnivoice-kit generate \
-  --base-model k2-fsa/OmniVoice \
-  --checkpoint-dir /path/to/checkpoint-or-adapter \
+  --base-model kizuna-intelligence/tsukuyomichan-omnivoice-full-finetune \
+  --checkpoint-dir kizuna-intelligence/tsukuyomichan-omnivoice-compressed/fp16 \
   --input-jsonl examples/japanese_prompts.jsonl \
-  --output-dir artifacts/generate_ja \
+  --output-dir artifacts/generate_fp16 \
   --language ja \
   --num-step 16
 ```
 
-## Current Recommendation For Tsukuyomichan TTS
-
-The current top recommendation is the full finetune setting `full_ft_lr2e5_resume500_bt256ga4`.
-
-Why:
-
-- it achieved the highest speaker-similarity score
-- it sounded closer to the target speaker than the LoRA variants
-- `checkpoint-500 + num_step=16` was the most stable baseline condition
-
-Current judgment:
-
-- recommended: `full_ft_lr2e5_resume500_bt256ga4`
-- comparison only: `top128_attnmlp32_resume900`
-- not recommended: `top128_attnmlp12`
-
-At the current stage, LoRA variants are retained only for comparison.
-
-## Hardware Guidance
-
-The current recommended full-finetune setup was validated on a single GPU.
-
-- recommended full-finetune preset  
-  `full_ft_lr2e5_resume500_bt256ga4`
-- mixed precision  
-  `bf16`
-- verified GPU  
-  `RTX 5060 Ti 16GB`
-- also verified on  
-  `RTX 3090 24GB`
-
-Practical guidance:
-
-- `16GB VRAM` is a realistic minimum for the recommended full-finetune run on one GPU
-- `24GB VRAM` gives you noticeably more headroom for checkpointing and parallel work
-- `12GB VRAM` or below will likely be tight for this full-finetune setting
-
-Inference is much lighter than training.
-
-- recommended inference baseline  
-  `num_step=16`
-- verified  
-  runs fine on `16GB VRAM`
-- if you want slightly more expressive decoding  
-  try `num_step=24`
-
-## Low-VRAM Optimization
-
-For devices with 4 GB VRAM or similar constraints.
-
-### What it does
-
-- **LM compression (`compress-lm`)**: Compresses the LLM backbone (Qwen3-0.6B based) using OneCompression AutoBit (8-bit GPTQ). 2.45 GB → 0.73 GB.
-- **Encoder stripping (`--strip-audio-encoder`)**: Removes audio tokenizer encoder modules (~715 MB) that are unused during no-ref inference.
-
-### Setup
+### GPTQ 8-bit (compressed, for 4 GB GPU)
 
 ```bash
-# Python 3.12 required for onecomp
-pip install "omnivoice-kit[compress]"
+CUDA_VISIBLE_DEVICES=0 \
+omnivoice-kit generate \
+  --base-model kizuna-intelligence/tsukuyomichan-omnivoice-full-finetune \
+  --checkpoint-dir kizuna-intelligence/tsukuyomichan-omnivoice-compressed/gptq8 \
+  --strip-audio-encoder \
+  --input-jsonl examples/japanese_prompts.jsonl \
+  --output-dir artifacts/generate_gptq8 \
+  --language ja \
+  --num-step 16
 ```
 
-### Steps
+`--strip-audio-encoder` removes the audio encoder modules (~715 MB) that are unused during no-ref inference. This saves significant VRAM.
 
-Step 1: Compress the LLM (one-time, needs ~8 GB VRAM for calibration)
+### Input File Format
+
+Prepare a JSONL file with one JSON object per line, as in `examples/japanese_prompts.jsonl`:
+
+```json
+{"id": "001", "text": "こんにちは、今日はいい天気ですね。"}
+{"id": "002", "text": "やった！ようやく完成したよ！"}
+```
+
+---
+
+## Low-VRAM: Compress the Model Yourself
+
+A pre-compressed model is already available on [HuggingFace](https://huggingface.co/kizuna-intelligence/tsukuyomichan-omnivoice-compressed). If you want to compress a different model, follow these steps.
+
+**Step 1: Compress the LLM (one-time, needs ~8 GB VRAM)**
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 \
@@ -216,7 +106,7 @@ omnivoice-kit compress-lm \
   --total-budget-gb 3.0
 ```
 
-Step 2: Inference (~1.4 GB peak VRAM, verified on 4 GB VRAM device)
+**Step 2: Run inference with the compressed model**
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 \
@@ -229,26 +119,122 @@ omnivoice-kit generate \
   --language ja
 ```
 
-### VRAM comparison
+---
 
-| Configuration | Peak VRAM |
-|---|---|
-| FP16 original | ~3.3 GB |
-| LM 8-bit + tokenizer FP16 | ~1.83 GB |
-| LM 8-bit + encoder stripped | ~1.35 GB |
+## Training on Your Own Corpus
 
-## Notes
+### Step 1: Prepare data
 
-- Use `CUDA_VISIBLE_DEVICES` if you want to pin a physical GPU
-- `omnivoice-kit` does not require OpenVoice as a runtime dependency
-- The upstream OmniVoice source is vendored as a submodule under `third_party/OmniVoice`
+**`VOICEACTRESS100_###/*.flac + JSON` format**
+
+```bash
+omnivoice-kit prepare-voiceactress-jsonl \
+  --dataset-dir /path/to/tsukuyomichan_processed \
+  --output-dir work/tsukuyomi_voiceactress100
+```
+
+**LJSpeech-style archive**
+
+```bash
+omnivoice-kit prepare-jsonl \
+  --archive /path/to/dataset.tar.zst \
+  --output-dir work/dataset
+```
+
+### Step 2: Tokenize
+
+```bash
+omnivoice-kit tokenize-jsonl \
+  --input-jsonl work/tsukuyomi_voiceactress100/jsonl/train.jsonl \
+  --output-dir work/tokens/train
+
+omnivoice-kit tokenize-jsonl \
+  --input-jsonl work/tsukuyomi_voiceactress100/jsonl/dev.jsonl \
+  --output-dir work/tokens/dev
+```
+
+### Step 3: Generate config files
+
+**For LoRA**
+
+```bash
+omnivoice-kit write-lora-configs \
+  --train-manifest work/tokens/train/data.lst \
+  --dev-manifest work/tokens/dev/data.lst \
+  --output-dir configs/lora
+```
+
+**For Full Finetune (recommended)**
+
+```bash
+omnivoice-kit write-full-finetune-configs \
+  --train-manifest work/tokens/train/data.lst \
+  --dev-manifest work/tokens/dev/data.lst \
+  --output-dir configs/full_finetune
+```
+
+### Step 4: Run training
+
+**LoRA**
+
+```bash
+CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 \
+omnivoice-kit launch-train \
+  --train-config configs/lora/train_config_lora.json \
+  --data-config configs/lora/data_config_lora.json \
+  --output-dir artifacts/train_lora \
+  --num-processes 1
+```
+
+**Full Finetune**
+
+```bash
+CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 \
+omnivoice-kit launch-train \
+  --train-config configs/full_finetune/train_config_full_finetune.json \
+  --data-config configs/full_finetune/data_config_full_finetune.json \
+  --output-dir artifacts/train_full_finetune \
+  --num-processes 1
+```
+
+### LoRA vs Full Finetune
+
+- **LoRA**: Lighter. Kept for comparison purposes.
+- **Full Finetune**: Higher voice similarity. Recommended when building a TTS for a specific character.
+
+### VRAM Requirements for Training
+
+| Task | Minimum VRAM | Recommended VRAM |
+|---|---|---|
+| Full finetune | 16 GB | 24 GB |
+| Inference only | 3.3 GB (FP16) / 1.35 GB (compressed) | — |
+
+---
+
+## About This Repository
+
+This kit is designed not just to run OmniVoice out of the box, but to build **character-specialized TTS** for a target speaker:
+
+- Training does not require reference audio (`ref_audio`)
+- Inference is optimized for no-ref output that sounds like the target character
+- The focus is on speaker specialization, not general-purpose voice cloning
+
+```text
+third_party/OmniVoice/   OmniVoice upstream (submodule)
+src/omnivoice_kit/       Training, inference, and optimization wrappers
+examples/                Sample input files
+```
+
+---
 
 ## License
 
-`omnivoice-kit` uses the same license as the bundled OmniVoice source: `Apache-2.0`.
+`omnivoice-kit` uses the same license as OmniVoice: `Apache-2.0`.
 
 - [LICENSE](./LICENSE)
-- upstream OmniVoice: [third_party/OmniVoice/LICENSE](./third_party/OmniVoice/LICENSE)
+- [third_party/OmniVoice/LICENSE](./third_party/OmniVoice/LICENSE)
+
+---
 
 ## Credit and Usage Conditions
 
@@ -256,7 +242,7 @@ omnivoice-kit generate \
 
 The Tsukuyomichan model included in this toolkit was trained using voice data freely released by the free-use character "Tsukuyomichan" (© Rei Yumesaki).
 
-When publishing a Tsukuyomichan-like model, demo, or application, include the following credit in full. Please include the URL.
+When publishing a Tsukuyomichan-based model, demo, or application, include the following credit in full:
 
 ```text
 This software uses voice data freely released by the free-use character "Tsukuyomichan" (© Rei Yumesaki).
