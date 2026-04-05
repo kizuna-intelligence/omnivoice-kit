@@ -3,7 +3,14 @@
 OmniVoice を使って特定キャラクターの音声合成モデルを学習・推論するための汎用キットです。任意のコーパスで学習でき、特定の話者に特化した TTS を構築できます。
 
 - English README: [README_en.md](./README_en.md)
-- サンプルモデル（つくよみちゃん）: [kizuna-intelligence/tsukuyomichan-omnivoice-compressed](https://huggingface.co/kizuna-intelligence/tsukuyomichan-omnivoice-compressed)
+
+公開済みの学習済みモデル：
+
+| モデル | 話者 | HuggingFace |
+|---|---|---|
+| つくよみちゃん（圧縮版） | つくよみちゃん（© Rei Yumesaki） | [kizuna-intelligence/tsukuyomichan-omnivoice-compressed](https://huggingface.co/kizuna-intelligence/tsukuyomichan-omnivoice-compressed) |
+| あみたろ ITA（通常） | あみたろの声素材工房 | [kizuna-intelligence/amitaro-ita-omnivoice-full-finetune](https://huggingface.co/kizuna-intelligence/amitaro-ita-omnivoice-full-finetune) |
+| サヨ子 | Fusic（81 歳女性） | [kizuna-intelligence/sayoko-omnivoice-full-finetune](https://huggingface.co/kizuna-intelligence/sayoko-omnivoice-full-finetune) |
 
 できることは 3 つです。
 
@@ -13,7 +20,9 @@ OmniVoice を使って特定キャラクターの音声合成モデルを学習�
 
 ---
 
-## まず音を出したい人へ（つくよみちゃんサンプルモデル）
+## まず音を出したい人へ
+
+### つくよみちゃんモデル
 
 つくよみちゃんの学習済みモデルを公開しています。HuggingFace に 2 種類用意されています。
 
@@ -27,6 +36,50 @@ OmniVoice を使って特定キャラクターの音声合成モデルを学習�
 どちらを使うか迷ったら：
 - **8 GB 以上の GPU がある** → FP16（通常版）を使ってください
 - **4 〜 6 GB の GPU しかない** → GPTQ 8-bit（圧縮版）を使ってください
+
+### あみたろ ITA モデル（通常スタイル）
+
+あみたろの声素材工房の ITA コーパス読み上げ音声で学習したモデルです（FP16 のみ）。
+
+```bash
+CUDA_VISIBLE_DEVICES=0 \
+omnivoice-kit generate \
+  --base-model kizuna-intelligence/amitaro-ita-omnivoice-full-finetune \
+  --input-jsonl examples/japanese_prompts.jsonl \
+  --output-dir artifacts/generate_amitaro \
+  --language ja \
+  --num-step 20
+```
+
+**利用規約（必読）：** [https://amitaro.net/voice/ita/](https://amitaro.net/voice/ita/)
+
+本モデルを使用した成果物には、以下のクレジット表記が**必須**です：
+
+```
+あみたろの声素材工房（https://amitaro.net/）
+```
+
+### サヨ子モデル
+
+Fusic のサヨ子音声コーパス（CC BY 4.0）で学習した 81 歳女性の声モデルです。
+
+```bash
+CUDA_VISIBLE_DEVICES=0 \
+omnivoice-kit generate \
+  --base-model kizuna-intelligence/sayoko-omnivoice-full-finetune \
+  --input-jsonl examples/japanese_prompts.jsonl \
+  --output-dir artifacts/generate_sayoko \
+  --language ja \
+  --num-step 20
+```
+
+**ライセンス：** CC BY 4.0
+
+本モデルを使用した成果物には、以下のクレジット表記が**必須**です：
+
+```
+Fusic/サヨ子音声コーパス（https://huggingface.co/datasets/bandad/sayoko-tts-corpus）
+```
 
 ---
 

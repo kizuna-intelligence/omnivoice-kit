@@ -3,7 +3,14 @@
 General-purpose training and inference kit for OmniVoice. Train on any corpus and build a TTS specialized for your target speaker or character.
 
 - 日本語 README: [README.md](./README.md)
-- Example model (Tsukuyomichan): [kizuna-intelligence/tsukuyomichan-omnivoice-compressed](https://huggingface.co/kizuna-intelligence/tsukuyomichan-omnivoice-compressed)
+
+Pre-trained models:
+
+| Model | Speaker | HuggingFace |
+|---|---|---|
+| Tsukuyomichan (compressed) | Tsukuyomichan (© Rei Yumesaki) | [kizuna-intelligence/tsukuyomichan-omnivoice-compressed](https://huggingface.co/kizuna-intelligence/tsukuyomichan-omnivoice-compressed) |
+| Amitaro ITA (normal) | Amitaro Voice Material Studio | [kizuna-intelligence/amitaro-ita-omnivoice-full-finetune](https://huggingface.co/kizuna-intelligence/amitaro-ita-omnivoice-full-finetune) |
+| Sayoko | Fusic (81-year-old female) | [kizuna-intelligence/sayoko-omnivoice-full-finetune](https://huggingface.co/kizuna-intelligence/sayoko-omnivoice-full-finetune) |
 
 This kit supports three things:
 
@@ -13,7 +20,9 @@ This kit supports three things:
 
 ---
 
-## Just Want to Hear the Voice? (Tsukuyomichan Example Model)
+## Pre-trained Models
+
+### Tsukuyomichan
 
 A pre-trained Tsukuyomichan model is available on HuggingFace in two variants.
 
@@ -27,6 +36,50 @@ A pre-trained Tsukuyomichan model is available on HuggingFace in two variants.
 Which one to use:
 - **8 GB or more VRAM** → Use FP16 (standard)
 - **4 – 6 GB VRAM** → Use GPTQ 8-bit (compressed)
+
+### Amitaro ITA (normal style)
+
+A model trained on ITA corpus recordings by Amitaro Voice Material Studio. FP16 only.
+
+```bash
+CUDA_VISIBLE_DEVICES=0 \
+omnivoice-kit generate \
+  --base-model kizuna-intelligence/amitaro-ita-omnivoice-full-finetune \
+  --input-jsonl examples/japanese_prompts.jsonl \
+  --output-dir artifacts/generate_amitaro \
+  --language ja \
+  --num-step 20
+```
+
+**License / Terms of use (required reading):** [https://amitaro.net/voice/ita/](https://amitaro.net/voice/ita/)
+
+When publishing anything made with this model, you **must** include the following credit:
+
+```
+あみたろの声素材工房（https://amitaro.net/）
+```
+
+### Sayoko
+
+A model trained on the Fusic Sayoko voice corpus (CC BY 4.0). The speaker is an 81-year-old female.
+
+```bash
+CUDA_VISIBLE_DEVICES=0 \
+omnivoice-kit generate \
+  --base-model kizuna-intelligence/sayoko-omnivoice-full-finetune \
+  --input-jsonl examples/japanese_prompts.jsonl \
+  --output-dir artifacts/generate_sayoko \
+  --language ja \
+  --num-step 20
+```
+
+**License:** CC BY 4.0
+
+When publishing anything made with this model, you **must** include the following credit:
+
+```
+Fusic/サヨ子音声コーパス（https://huggingface.co/datasets/bandad/sayoko-tts-corpus）
+```
 
 ---
 
