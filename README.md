@@ -12,7 +12,7 @@ OmniVoice を使って特定キャラクターの音声合成モデルを学習�
 | あみたろ ITA（通常） | あみたろの声素材工房 | [kizuna-intelligence/amitaro-ita-omnivoice-full-finetune](https://huggingface.co/kizuna-intelligence/amitaro-ita-omnivoice-full-finetune) |
 | サヨ子 | Fusic（81 歳女性） | [kizuna-intelligence/sayoko-omnivoice-full-finetune](https://huggingface.co/kizuna-intelligence/sayoko-omnivoice-full-finetune) |
 
-> **注意：** つくよみちゃん以外の音声モデルを利用する場合は、各モデルページに記載の利用規約を必ず参照してください。
+> **注意：** 各音声モデルを利用する前に、各モデルページに記載の利用規約を必ず参照してください。
 
 できることは 3 つです。
 
@@ -137,6 +137,34 @@ omnivoice-kit generate \
 ```
 
 `--strip-audio-encoder` は、no-ref 推論では使わない音声エンコーダー（約 715 MB）を除去するオプションです。VRAM の節約になります。
+
+### あみたろ ITA モデルで音を出す
+
+```bash
+CUDA_VISIBLE_DEVICES=0 \
+omnivoice-kit generate \
+  --base-model kizuna-intelligence/amitaro-ita-omnivoice-full-finetune \
+  --input-jsonl examples/japanese_prompts.jsonl \
+  --output-dir artifacts/generate_amitaro \
+  --language ja \
+  --num-step 20
+```
+
+**利用規約（必読）：** [https://amitaro.net/voice/ita/](https://amitaro.net/voice/ita/)
+
+### サヨ子モデルで音を出す
+
+```bash
+CUDA_VISIBLE_DEVICES=0 \
+omnivoice-kit generate \
+  --base-model kizuna-intelligence/sayoko-omnivoice-full-finetune \
+  --input-jsonl examples/japanese_prompts.jsonl \
+  --output-dir artifacts/generate_sayoko \
+  --language ja \
+  --num-step 20
+```
+
+**ライセンス：** CC BY 4.0（[モデルページ参照](https://huggingface.co/kizuna-intelligence/sayoko-omnivoice-full-finetune)）
 
 ### 入力ファイルの形式
 
