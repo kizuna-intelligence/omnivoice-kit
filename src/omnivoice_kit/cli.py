@@ -6,6 +6,7 @@ from pathlib import Path
 
 from .data import prepare_ljspeech_jsonl, prepare_voiceactress100_jsonl, tokenize_jsonl_to_manifest
 from .infer import generate_from_jsonl, load_model
+from .optimize import compress_lm, load_compressed_model, is_compressed_llm_dir
 from .train import launch_omnivoice_train, write_full_finetune_configs, write_lora_configs
 
 
@@ -58,6 +59,28 @@ def build_parser() -> argparse.ArgumentParser:
     p_gen.add_argument("--seed-base", type=int, default=2000)
     p_gen.add_argument("--ref-audio", default=None)
     p_gen.add_argument("--ref-text", default=None)
+    p_gen.add_argument(
+        "--strip-audio-encoder",
+        action="store_true",
+        help="Remove audio encoder modules (~715 MB) for no-ref inference on low-VRAM devices.",
+    )
+
+    p_compress = sub.add_parser(
+        "compress-lm",
+        help="Compress the LLM backbone with OneCompression AutoBit for low-VRAM inference.",
+    )
+    p_compress.add_argument("--model", required=True, help="HuggingFace model ID or local path.")
+    p_compress.add_argument("--output-dir", required=True, help="Where to save the compressed LLM.")
+    p_compress.add_argument(
+        "--total-budget-gb", type=float, default=3.0,
+        help="Target total weight VRAM in GB (LM + audio tokenizer). Default: 3.0",
+    )
+    p_compress.add_argument(
+        "--audio-tokenizer-gb", type=float, default=0.81,
+        help="Expected VRAM of audio tokenizer FP16 weights. Default: 0.81",
+    )
+    p_compress.add_argument("--device", default="cuda:0")
+
     return parser
 
 
@@ -85,7 +108,16 @@ def main():
         )
         result = {"returncode": completed.returncode, "output_dir": str(Path(args.output_dir).resolve())}
     elif args.command == "generate":
-        model = load_model(args.base_model, args.checkpoint_dir)
+        strip = getattr(args, "strip_audio_encoder", False)
+        if is_compressed_llm_dir(args.checkpoint_dir):
+            model = load_compressed_model(
+                args.base_model, args.checkpoint_dir, strip_encoder=strip,
+            )
+        else:
+            from .optimize import strip_audio_encoder
+            model = load_model(args.base_model, args.checkpoint_dir)
+            if strip:
+                strip_audio_encoder(model)
         result = generate_from_jsonl(
             model=model,
             input_jsonl=args.input_jsonl,
@@ -96,6 +128,15 @@ def main():
             ref_audio=args.ref_audio,
             ref_text=args.ref_text,
         )
+    elif args.command == "compress-lm":
+        compress_lm(
+            model_id=args.model,
+            output_dir=args.output_dir,
+            total_budget_gb=args.total_budget_gb,
+            audio_tokenizer_gb=args.audio_tokenizer_gb,
+            device=args.device,
+        )
+        result = {"output_dir": str(Path(args.output_dir).resolve())}
     else:
         raise ValueError(args.command)
 

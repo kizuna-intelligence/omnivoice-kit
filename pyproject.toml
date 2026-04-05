@@ -16,6 +16,10 @@ dependencies = [
   "webdataset>=1.0.2",
 ]
 
+[project.optional-dependencies]
+# Low-VRAM LM compression (requires Python >= 3.12)
+compress = ["onecomp>=1.0.0"]
+
 [project.scripts]
 omnivoice-kit = "omnivoice_kit.cli:main"
 

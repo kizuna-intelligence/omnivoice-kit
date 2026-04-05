@@ -211,6 +211,55 @@ clone 直後は必ずこれを実行してください。
 git submodule update --init --recursive
 ```
 
+## 低VRAM向け最適化
+
+4 GB VRAM など低 VRAM 環境向けの最適化手順です。
+
+### 仕組み
+
+- **LM 圧縮 (compress-lm)**: LLM バックボーン（Qwen3-0.6B ベース）を OneCompression AutoBit で GPTQ 8bit 圧縮します。2.45 GB → 0.73 GB。
+- **エンコーダー除去 (--strip-audio-encoder)**: no-ref 推論には不要な audio tokenizer のエンコーダー部分（~715 MB）を除去します。
+
+### セットアップ
+
+```bash
+# Python 3.12 が必要
+pip install "omnivoice-kit[compress]"
+```
+
+### 手順
+
+Step 1: LM 圧縮（一度だけ実行、~8 GB VRAM 必要）
+
+```bash
+CUDA_VISIBLE_DEVICES=0 \
+omnivoice-kit compress-lm \
+  --model kizuna-intelligence/tsukuyomichan-omnivoice-full-finetune \
+  --output-dir artifacts/compressed_lm \
+  --total-budget-gb 3.0
+```
+
+Step 2: 推論（~1.4 GB VRAM、4 GB 環境で動作確認済み）
+
+```bash
+CUDA_VISIBLE_DEVICES=0 \
+omnivoice-kit generate \
+  --base-model kizuna-intelligence/tsukuyomichan-omnivoice-full-finetune \
+  --checkpoint-dir artifacts/compressed_lm \
+  --strip-audio-encoder \
+  --input-jsonl examples/japanese_prompts.jsonl \
+  --output-dir artifacts/generate_low_vram \
+  --language ja
+```
+
+### VRAM 比較
+
+| 構成 | VRAM |
+|---|---|
+| FP16 オリジナル | ~3.3 GB |
+| LM 8bit + tokenizer FP16 | ~1.83 GB |
+| LM 8bit + encoder 除去 | ~1.35 GB |
+
 ## ライセンス
 
 `omnivoice-kit` は、同梱している OmniVoice と同じ `Apache-2.0` として扱います。

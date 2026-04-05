@@ -188,6 +188,55 @@ Inference is much lighter than training.
 - if you want slightly more expressive decoding  
   try `num_step=24`
 
+## Low-VRAM Optimization
+
+For devices with 4 GB VRAM or similar constraints.
+
+### What it does
+
+- **LM compression (`compress-lm`)**: Compresses the LLM backbone (Qwen3-0.6B based) using OneCompression AutoBit (8-bit GPTQ). 2.45 GB → 0.73 GB.
+- **Encoder stripping (`--strip-audio-encoder`)**: Removes audio tokenizer encoder modules (~715 MB) that are unused during no-ref inference.
+
+### Setup
+
+```bash
+# Python 3.12 required for onecomp
+pip install "omnivoice-kit[compress]"
+```
+
+### Steps
+
+Step 1: Compress the LLM (one-time, needs ~8 GB VRAM for calibration)
+
+```bash
+CUDA_VISIBLE_DEVICES=0 \
+omnivoice-kit compress-lm \
+  --model kizuna-intelligence/tsukuyomichan-omnivoice-full-finetune \
+  --output-dir artifacts/compressed_lm \
+  --total-budget-gb 3.0
+```
+
+Step 2: Inference (~1.4 GB peak VRAM, verified on 4 GB VRAM device)
+
+```bash
+CUDA_VISIBLE_DEVICES=0 \
+omnivoice-kit generate \
+  --base-model kizuna-intelligence/tsukuyomichan-omnivoice-full-finetune \
+  --checkpoint-dir artifacts/compressed_lm \
+  --strip-audio-encoder \
+  --input-jsonl examples/japanese_prompts.jsonl \
+  --output-dir artifacts/generate_low_vram \
+  --language ja
+```
+
+### VRAM comparison
+
+| Configuration | Peak VRAM |
+|---|---|
+| FP16 original | ~3.3 GB |
+| LM 8-bit + tokenizer FP16 | ~1.83 GB |
+| LM 8-bit + encoder stripped | ~1.35 GB |
+
 ## Notes
 
 - Use `CUDA_VISIBLE_DEVICES` if you want to pin a physical GPU
